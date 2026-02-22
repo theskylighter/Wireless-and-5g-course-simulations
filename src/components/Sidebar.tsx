@@ -9,7 +9,9 @@ import {
   Grid,
   Info,
   ChevronRight,
-  X
+  X,
+  Activity,
+  RotateCcw
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -18,7 +20,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type TabId = 'home' | 'cellular' | 'trunking' | 'handoff' | 'multipath' | 'modulation' | 'mimo';
+export type TabId = 'home' | 'cellular' | 'trunking' | 'handoff' | 'doppler' | 'multipath' | 'signal-recovery' | 'modulation' | 'mimo';
 
 interface SidebarProps {
   activeTab: TabId;
@@ -32,7 +34,9 @@ const navItems = [
   { id: 'cellular', label: 'Cellular Design', icon: Grid, disabled: false },
   { id: 'trunking', label: 'Trunking Theory', icon: Network, disabled: false },
   { id: 'handoff', label: 'Handoff', icon: Waves, disabled: false },
+  { id: 'doppler', label: 'Doppler Effect', icon: Activity, disabled: false },
   { id: 'multipath', label: 'Multipath Fading', icon: Zap, disabled: false },
+  { id: 'signal-recovery', label: 'Signal Recovery', icon: RotateCcw, disabled: false },
   { id: 'modulation', label: 'Modulation', icon: Radio, disabled: true },
   { id: 'mimo', label: '5G MIMO', icon: Cpu, disabled: true },
 ] as const;

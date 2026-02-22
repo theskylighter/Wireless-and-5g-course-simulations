@@ -7,12 +7,14 @@ import {
   Zap,
   Grid,
   BookOpen,
+  Activity,
+  RotateCcw,
   ArrowRight
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface HomeProps {
-  onStart: (tab: 'cellular' | 'trunking' | 'handoff' | 'multipath' | 'modulation' | 'mimo') => void;
+  onStart: (tab: 'cellular' | 'trunking' | 'handoff' | 'doppler' | 'multipath' | 'signal-recovery' | 'modulation' | 'mimo') => void;
 }
 
 export function Home({ onStart }: HomeProps) {
@@ -42,11 +44,27 @@ export function Home({ onStart }: HomeProps) {
       disabled: false
     },
     { 
+      id: 'doppler', 
+      title: 'Doppler Effect', 
+      desc: 'Visualize frequency shifts caused by relative motion in wireless channels.',
+      icon: Activity,
+      color: 'bg-cyan-500',
+      disabled: false
+    },
+    { 
       id: 'multipath', 
       title: 'Multipath & Impulse Response', 
       desc: 'Visualize LOS and NLOS reflections and their impact on channel delay spread.',
       icon: Zap,
       color: 'bg-amber-500',
+      disabled: false
+    },
+    { 
+      id: 'signal-recovery', 
+      title: 'Signal Recovery', 
+      desc: 'Recover signals distorted by multipath using Zero-Forcing Equalization.',
+      icon: RotateCcw,
+      color: 'bg-teal-500',
       disabled: false
     },
     { 

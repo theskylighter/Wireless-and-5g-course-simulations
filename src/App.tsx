@@ -5,6 +5,8 @@ import { TrunkingSimulator } from './components/simulations/TrunkingSimulator';
 import { PropagationSimulator } from './components/simulations/PropagationSimulator';
 import { MultipathSimulator } from './components/simulations/MultipathSimulator';
 import { CellularSimulator } from './components/simulations/CellularSimulator';
+import { DopplerSimulator } from './components/simulations/DopplerSimulator';
+import { SignalRecoverySimulator } from './components/simulations/SignalRecoverySimulator';
 import { motion, AnimatePresence } from 'motion/react';
 import { Construction, Menu } from 'lucide-react';
 
@@ -44,8 +46,12 @@ export default function App() {
         return <TrunkingSimulator />;
       case 'handoff':
         return <PropagationSimulator />;
+      case 'doppler':
+        return <DopplerSimulator />;
       case 'multipath':
         return <MultipathSimulator />;
+      case 'signal-recovery':
+        return <SignalRecoverySimulator />;
       case 'modulation':
         return <Placeholder title="Modulation Techniques" />;
       case 'mimo':
