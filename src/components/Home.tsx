@@ -69,11 +69,11 @@ export function Home({ onStart }: HomeProps) {
     },
     { 
       id: 'modulation', 
-      title: 'Modulation Techniques', 
-      desc: 'QAM, PSK, and OFDM - the heart of high-speed data transmission.',
+      title: 'Modulation Lab', 
+      desc: 'Explore Antenna Size, Time-Domain multiplication, and Frequency-Domain bandwidth.',
       icon: Radio,
-      color: 'bg-amber-500',
-      disabled: true
+      color: 'bg-purple-500',
+      disabled: false
     },
     { 
       id: 'mimo', 

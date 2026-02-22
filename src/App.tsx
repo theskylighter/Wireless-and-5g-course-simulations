@@ -7,6 +7,7 @@ import { MultipathSimulator } from './components/simulations/MultipathSimulator'
 import { CellularSimulator } from './components/simulations/CellularSimulator';
 import { DopplerSimulator } from './components/simulations/DopplerSimulator';
 import { SignalRecoverySimulator } from './components/simulations/SignalRecoverySimulator';
+import { ModulationSimulator } from './components/simulations/ModulationSimulator';
 import { motion, AnimatePresence } from 'motion/react';
 import { Construction, Menu } from 'lucide-react';
 
@@ -53,7 +54,7 @@ export default function App() {
       case 'signal-recovery':
         return <SignalRecoverySimulator />;
       case 'modulation':
-        return <Placeholder title="Modulation Techniques" />;
+        return <ModulationSimulator />;
       case 'mimo':
         return <Placeholder title="5G MIMO & Beamforming" />;
       default:

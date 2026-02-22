@@ -37,7 +37,7 @@ const navItems = [
   { id: 'doppler', label: 'Doppler Effect', icon: Activity, disabled: false },
   { id: 'multipath', label: 'Multipath Fading', icon: Zap, disabled: false },
   { id: 'signal-recovery', label: 'Signal Recovery', icon: RotateCcw, disabled: false },
-  { id: 'modulation', label: 'Modulation', icon: Radio, disabled: true },
+  { id: 'modulation', label: 'Modulation Lab', icon: Radio, disabled: false },
   { id: 'mimo', label: '5G MIMO', icon: Cpu, disabled: true },
 ] as const;
 
