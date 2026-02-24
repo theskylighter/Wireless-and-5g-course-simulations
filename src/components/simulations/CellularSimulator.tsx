@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Maximize2
 } from 'lucide-react';
+import { InlineMath } from 'react-katex';
 
 export function CellularSimulator() {
   // Simulation Parameters
@@ -235,7 +236,7 @@ export function CellularSimulator() {
                 <strong className="text-blue-400">The Cluster (N):</strong> A group of cells that use completely different frequencies. The pattern repeats across the city. Larger N means less interference, but fewer users per cell.
               </p>
               <p>
-                <strong className="text-blue-400">The Math:</strong> N = i² + ij + j². Try setting <code className="bg-slate-800 px-1 rounded text-white">i=1, j=1</code> to see a 3-cell cluster, or <code className="bg-slate-800 px-1 rounded text-white">i=2, j=1</code> for a standard 7-cell cluster.
+                <strong className="text-blue-400">The Math:</strong> <InlineMath math="N = i^2 + ij + j^2" />. Try setting <code className="bg-slate-800 px-1 rounded text-white">i=1, j=1</code> to see a 3-cell cluster, or <code className="bg-slate-800 px-1 rounded text-white">i=2, j=1</code> for a standard 7-cell cluster.
               </p>
             </div>
           </section>

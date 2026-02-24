@@ -30,6 +30,7 @@ import {
   Pause,
   RotateCcw
 } from 'lucide-react';
+import { InlineMath, BlockMath } from 'react-katex';
 
 export function PropagationSimulator() {
   // Handoff Parameters
@@ -552,9 +553,11 @@ export function PropagationSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">1. Log-Distance Path Loss</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <div className="text-xl font-mono text-indigo-600 mb-2">PL(d) = PL(d₀) + 10n log₁₀(d/d₀)</div>
+                    <div className="text-xl text-indigo-600 mb-2">
+                      <InlineMath math="PL(d) = PL(d_0) + 10n \log_{10}(d/d_0)" />
+                    </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      Describes how signal power decays over distance. <i>n</i> is the path loss exponent (2 for free space, ~4 for urban).
+                      Describes how signal power decays over distance. <InlineMath math="n" /> is the path loss exponent (2 for free space, ~4 for urban).
                     </p>
                   </div>
                 </section>
@@ -562,7 +565,9 @@ export function PropagationSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">2. Handoff Margin (Δ)</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <div className="text-xl font-mono text-indigo-600 mb-2">Δ = P_handoff - P_min_usable</div>
+                    <div className="text-xl text-indigo-600 mb-2">
+                      <InlineMath math="\Delta = P_{\text{handoff}} - P_{\text{min\_usable}}" />
+                    </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       The safety margin required to ensure a handoff completes before the signal becomes unusable.
                     </p>
@@ -572,11 +577,11 @@ export function PropagationSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">3. Doppler Shift (fd)</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <div className="text-xl font-mono text-rose-600 mb-4 text-center">
-                      fd = (v / λ) cos θ
+                    <div className="text-xl text-rose-600 mb-4 text-center">
+                      <BlockMath math="f_d = (v / \lambda) \cos \theta" />
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      The change in frequency caused by relative motion between transmitter and receiver. <i>v</i> is velocity, <i>λ</i> is wavelength.
+                      The change in frequency caused by relative motion between transmitter and receiver. <InlineMath math="v" /> is velocity, <InlineMath math="\lambda" /> is wavelength.
                     </p>
                   </div>
                 </section>
@@ -584,7 +589,9 @@ export function PropagationSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">4. Coherence Time (Tc)</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <div className="text-xl font-mono text-indigo-600 mb-2">Tc ≈ 1 / fd</div>
+                    <div className="text-xl text-indigo-600 mb-2">
+                      <InlineMath math="T_c \approx 1 / f_d" />
+                    </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       The time duration over which the wireless channel is considered constant.
                     </p>

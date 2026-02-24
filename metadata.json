@@ -1,5 +1,5 @@
 {
   "name": "Wireless & 5G Communication Simulator",
-  "description": "An interactive educational platform for understanding wireless communication concepts, featuring simulations for Trunking Theory, Path Loss, and more.",
+  "description": "An interactive educational platform for understanding wireless communication concepts, featuring simulations for Blocking Probability, Path Loss, and more.",
   "requestFramePermissions": []
 }

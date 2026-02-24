@@ -29,8 +29,8 @@ export function Home({ onStart }: HomeProps) {
     },
     { 
       id: 'trunking', 
-      title: 'Trunking Theory', 
-      desc: 'Markov Chains, Erlang B, and capacity planning for cellular networks.',
+      title: 'Blocking Probability', 
+      desc: 'Erlang B models and Grade of Service (GoS) for capacity planning.',
       icon: Network,
       color: 'bg-indigo-500',
       disabled: false

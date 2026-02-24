@@ -20,8 +20,10 @@ import {
   Pause, 
   RotateCcw,
   Info,
-  Zap
+  Zap,
+  X
 } from 'lucide-react';
+import { InlineMath, BlockMath } from 'react-katex';
 
 interface Point {
   x: number;
@@ -351,7 +353,7 @@ export function MultipathSimulator() {
 
           {/* Section 2: Impulse Response Chart */}
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">2. The Impulse Response Chart h(τ)</h4>
+            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">2. The Impulse Response Chart <InlineMath math="h(\tau)" /></h4>
             <ul className="space-y-4">
               <li className="flex gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-2 shrink-0" />

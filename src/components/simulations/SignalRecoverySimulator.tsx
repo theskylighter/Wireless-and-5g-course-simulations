@@ -7,8 +7,11 @@ import {
   Radio, 
   Zap, 
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Info,
+  X
 } from 'lucide-react';
+import { InlineMath, BlockMath } from 'react-katex';
 import * as math from 'mathjs';
 import { Line, Bar } from 'react-chartjs-2';
 import {
@@ -281,63 +284,59 @@ export function SignalRecoverySimulator() {
             {stage > 1 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
           </div>
           
-          <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Binary Input</label>
-                <input 
-                  type="text" 
-                  value={inputBits}
-                  onChange={(e) => setInputBits(e.target.value.replace(/[^01]/g, ''))}
-                  disabled={stage !== 1}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono tracking-widest focus:ring-2 focus:ring-indigo-500 outline-none"
-                  placeholder="10110"
-                />
-                <p className="text-xs text-slate-500 mt-1">Only '0' and '1' allowed.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Samples per Symbol: {samplesPerSymbol}</label>
-                <input 
-                  type="range" min="5" max="50" step="1"
-                  value={samplesPerSymbol}
-                  onChange={(e) => setSamplesPerSymbol(Number(e.target.value))}
-                  disabled={stage !== 1}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                />
-              </div>
-            </div>
-            
-            <div className="lg:col-span-2 h-48 bg-slate-50 rounded-xl border border-slate-100 p-2 relative">
-              {signalX.length > 0 ? (
-                <Line 
-                  data={{
-                    labels: signalX.map((_, i) => i),
-                    datasets: [{
-                      label: 'x[n]',
-                      data: signalX,
-                      borderColor: '#4f46e5',
-                      backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                      borderWidth: 2,
-                      pointRadius: 0,
-                      stepped: true,
-                      fill: true
-                    }]
-                  }}
-                  options={{
-                    ...commonOptions,
-                    scales: {
-                      y: { min: -1.5, max: 1.5, grid: { color: '#e2e8f0' } },
-                      x: { display: false }
-                    }
-                  }}
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
-                  Waiting for signal generation...
+              <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Theory: Inverse Filter</h4>
+                    <div className="text-lg text-indigo-600 mb-2">
+                      <InlineMath math="E(f) = \frac{1}{H(f)}" />
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      Zero-Forcing (ZF) equalization attempts to "undo" the channel by applying its mathematical inverse in the frequency domain.
+                    </p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">The Recovery Logic</h4>
+                    <div className="text-lg text-emerald-600 mb-2">
+                      <InlineMath math="\hat{X}(f) = Y(f) \cdot E(f)" />
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      By multiplying the received spectrum <InlineMath math="Y(f)" /> by the equalizer <InlineMath math="E(f)" />, we recover the original signal <InlineMath math="\hat{X}(f)" />.
+                    </p>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+                
+                <div className="lg:col-span-2 h-48 bg-slate-50 rounded-xl border border-slate-100 p-2 relative">
+                  {signalX.length > 0 ? (
+                    <Line 
+                      data={{
+                        labels: signalX.map((_, i) => i),
+                        datasets: [{
+                          label: 'x[n]',
+                          data: signalX,
+                          borderColor: '#4f46e5',
+                          backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                          borderWidth: 2,
+                          pointRadius: 0,
+                          stepped: true,
+                          fill: true
+                        }]
+                      }}
+                      options={{
+                        ...commonOptions,
+                        scales: {
+                          y: { min: -1.5, max: 1.5, grid: { color: '#e2e8f0' } },
+                          x: { display: false }
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
+                      Waiting for signal generation...
+                    </div>
+                  )}
+                </div>
+              </div>
         </div>
       </section>
 
@@ -478,7 +477,7 @@ export function SignalRecoverySimulator() {
               </div>
 
               <p className="text-sm text-slate-600 mb-4">
-                The received signal <code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 font-mono">y[n] = (x[n] * h[n]) + noise</code> shows how the multipath channel smears the original bits and adds noise.
+                The received signal <InlineMath math="y[n] = (x[n] * h[n]) + \text{noise}" /> shows how the multipath channel smears the original bits and adds noise.
               </p>
               <div className="h-48 bg-slate-50 rounded-xl border border-slate-100 p-2 relative">
                 {signalYNoisy.length > 0 ? (
@@ -624,8 +623,8 @@ export function SignalRecoverySimulator() {
                 <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-amber-800">
                   <strong className="font-bold block mb-1">Why does Zero-Forcing fail with noise?</strong>
-                  Zero-Forcing applies an inverse filter <code className="font-mono bg-amber-100 px-1 rounded">1/H(f)</code> to restore the signal. 
-                  However, if the channel has a "deep fade" (where H(f) is tiny), the Equalizer E(f) becomes huge. 
+                  Zero-Forcing applies an inverse filter <InlineMath math="1/H(f)" /> to restore the signal. 
+                  However, if the channel has a "deep fade" (where <InlineMath math="H(f)" /> is tiny), the Equalizer <InlineMath math="E(f)" /> becomes huge. 
                   This drastically amplifies any noise present at those frequencies (Noise Enhancement), corrupting the recovered bits.
                 </div>
               </div>

@@ -32,7 +32,7 @@ interface SidebarProps {
 const navItems = [
   { id: 'home', label: 'Home', icon: Home, disabled: false },
   { id: 'cellular', label: 'Cellular Design', icon: Grid, disabled: false },
-  { id: 'trunking', label: 'Trunking Theory', icon: Network, disabled: false },
+  { id: 'trunking', label: 'Blocking Probability', icon: Network, disabled: false },
   { id: 'handoff', label: 'Handoff', icon: Waves, disabled: false },
   { id: 'doppler', label: 'Doppler Effect', icon: Activity, disabled: false },
   { id: 'multipath', label: 'Multipath Fading', icon: Zap, disabled: false },

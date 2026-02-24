@@ -14,6 +14,7 @@ import {
   Cell
 } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
+import { InlineMath, BlockMath } from 'react-katex';
 import { 
   Settings2, 
   Info, 
@@ -128,7 +129,7 @@ export function TrunkingSimulator() {
     <div className="flex flex-col gap-8 p-8 max-w-7xl mx-auto">
       <header className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Trunking & Queuing Theory</h2>
+          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Blocking Probability (GoS)</h2>
           <button 
             onClick={() => setShowFormulas(true)}
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
@@ -138,7 +139,7 @@ export function TrunkingSimulator() {
           </button>
         </div>
         <p className="text-slate-500 max-w-2xl">
-          Understand how cellular networks manage a limited pool of channels to serve an infinite population of users using Markov Chains and Erlang B models.
+          Understand Grade of Service (GoS) and how cellular networks manage a limited pool of channels to serve users using Erlang B models.
         </p>
       </header>
 
@@ -424,7 +425,7 @@ export function TrunkingSimulator() {
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-slate-900">Mathematical Foundation</h3>
-                  <p className="text-slate-500 text-sm">The logic behind Trunking Theory</p>
+                  <p className="text-slate-500 text-sm">The logic behind Blocking Probability & GoS</p>
                 </div>
               </div>
 
@@ -432,10 +433,12 @@ export function TrunkingSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">1. Traffic Intensity (A)</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center justify-between">
-                    <div className="text-2xl font-mono text-indigo-600">A = λ / μ</div>
+                    <div className="text-2xl text-indigo-600">
+                      <InlineMath math="A = \lambda / \mu" />
+                    </div>
                     <div className="text-xs text-slate-500 text-right max-w-[200px]">
-                      λ: Arrival Rate (calls/sec)<br/>
-                      μ: Service Rate (1/Holding Time)
+                      <InlineMath math="\lambda" />: Arrival Rate (calls/sec)<br/>
+                      <InlineMath math="\mu" />: Service Rate (1/Holding Time)
                     </div>
                   </div>
                 </section>
@@ -443,9 +446,11 @@ export function TrunkingSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">2. Global Balance Equation</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <div className="text-xl font-mono text-indigo-600 mb-2">P(n-1) * λ = P(n) * nμ</div>
+                    <div className="text-xl text-indigo-600 mb-2">
+                      <InlineMath math="P(n-1) \cdot \lambda = P(n) \cdot n\mu" />
+                    </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      In steady state, the rate of entering state <i>n</i> must equal the rate of leaving it. This allows us to solve for any state probability in terms of P0.
+                      In steady state, the rate of entering state <i>n</i> must equal the rate of leaving it. This allows us to solve for any state probability in terms of <InlineMath math="P_0" />.
                     </p>
                   </div>
                 </section>
@@ -453,8 +458,8 @@ export function TrunkingSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">3. Erlang B Formula (Blocking)</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <div className="text-xl font-mono text-rose-600 mb-4 text-center">
-                      B(C, A) = (A^C / C!) / Σ (A^i / i!)
+                    <div className="text-xl text-rose-600 mb-4 text-center">
+                      <BlockMath math="B(C, A) = \frac{A^C / C!}{\sum_{i=0}^{C} A^i / i!}" />
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       This formula calculates the probability that all <i>C</i> channels are busy. It assumes "Lost Calls Cleared" (no queuing).
@@ -465,7 +470,9 @@ export function TrunkingSimulator() {
                 <section>
                   <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">4. State Probability (Pn)</h4>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                    <div className="text-xl font-mono text-indigo-600 mb-2">Pn = P0 * (A^n / n!)</div>
+                    <div className="text-xl text-indigo-600 mb-2">
+                      <InlineMath math="P_n = P_0 \cdot \frac{A^n}{n!}" />
+                    </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       The probability of having exactly <i>n</i> connections active at any given time.
                     </p>

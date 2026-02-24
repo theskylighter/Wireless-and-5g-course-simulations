@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Info, Radio, Activity, Zap, AlertTriangle, Smartphone, X } from 'lucide-react';
+import { InlineMath, BlockMath } from 'react-katex';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -578,12 +579,12 @@ export function ModulationSimulator() {
               <div className="space-y-4 text-slate-600 leading-relaxed">
                 {activeInfo === 'antenna' && (
                   <>
-                    <p>You cannot transmit raw baseband signals directly because required antenna height is proportional to wavelength λ.</p>
+                    <p>You cannot transmit raw baseband signals directly because required antenna height is proportional to wavelength <InlineMath math="\lambda" />.</p>
                     <div className="p-3 bg-slate-50 rounded-lg font-mono text-sm border border-slate-200">
-                      <div>Formula: c = λf ⇒ λ = c/f</div>
+                      <div>Formula: <InlineMath math="c = \lambda f \implies \lambda = c/f" /></div>
                       <div className="mt-2 text-slate-500 text-xs">
-                        Example: If f = 3000 Hz,<br/>
-                        λ = 3×10⁸ / 3000 = 10⁵ meters.<br/>
+                        Example: If <InlineMath math="f = 3000 \text{ Hz}" />,<br/>
+                        <InlineMath math="\lambda = 3 \times 10^8 / 3000 = 10^5 \text{ meters}" />.<br/>
                         You would need a 100 km tall antenna!
                       </div>
                     </div>
@@ -594,17 +595,17 @@ export function ModulationSimulator() {
                 {activeInfo === 'scope' && (
                   <>
                     <div className="p-3 bg-slate-50 rounded-lg font-mono text-sm border border-slate-200 space-y-2">
-                      <div><strong>Modulated Signal:</strong><br/>s(t) = Ac[1 + ka·f(t)]cos(2πfct)</div>
-                      <div><strong>Demodulation Proof:</strong><br/>Received = s(t) × cos(2πfct)<br/>= Ac[1 + ka·f(t)]cos²(2πfct)</div>
+                      <div><strong>Modulated Signal:</strong><br/><InlineMath math="s(t) = A_c[1 + k_a \cdot f(t)]\cos(2\pi f_c t)" /></div>
+                      <div><strong>Demodulation Proof:</strong><br/><InlineMath math="\text{Received} = s(t) \times \cos(2\pi f_c t)" /><br/><InlineMath math="= A_c[1 + k_a \cdot f(t)]\cos^2(2\pi f_c t)" /></div>
                     </div>
                     <p className="text-sm">
-                      Using the identity <code className="bg-slate-100 px-1 rounded">cos²(θ) = (1 + cos(2θ))/2</code>, we get:
+                      Using the identity <InlineMath math="\cos^2(\theta) = \frac{1 + \cos(2\theta)}{2}" />, we get:
                     </p>
                     <div className="p-2 bg-indigo-50 text-indigo-900 rounded font-mono text-xs text-center">
-                      ½Ac[1 + ka·f(t)] + ½Ac[1 + ka·f(t)]cos(4πfct)
+                      <InlineMath math="\frac{1}{2}A_c[1 + k_a \cdot f(t)] + \frac{1}{2}A_c[1 + k_a \cdot f(t)]\cos(4\pi f_c t)" />
                     </div>
                     <p className="text-sm">
-                      Passing this through a <strong>Low Pass Filter</strong> destroys the high-frequency <code className="text-xs">cos(4πfct)</code> garbage, leaving only our original signal!
+                      Passing this through a <strong>Low Pass Filter</strong> destroys the high-frequency <InlineMath math="\cos(4\pi f_c t)" /> garbage, leaving only our original signal!
                     </p>
                   </>
                 )}
@@ -614,16 +615,16 @@ export function ModulationSimulator() {
                     <p>To increase the frequency, we multiply our low-frequency signal by a high-frequency carrier wave.</p>
                     <div className="p-3 bg-slate-50 rounded-lg font-mono text-sm border border-slate-200">
                       <div>Euler's Formula:</div>
-                      <div className="text-xs mt-1">cos(2πfct) = ½(e^j2πfct + e^-j2πfct)</div>
+                      <div className="text-xs mt-1"><InlineMath math="\cos(2\pi f_c t) = \frac{1}{2}(e^{j2\pi f_c t} + e^{-j2\pi f_c t})" /></div>
                     </div>
                     <p className="text-sm">
-                      Because the Fourier Transform of <code className="font-mono">e^j2πfct</code> is <code className="font-mono">δ(f - fc)</code>, multiplying in time causes a <strong>shift</strong> in frequency.
+                      Because the Fourier Transform of <InlineMath math="e^{j2\pi f_c t}" /> is <InlineMath math="\delta(f - f_c)" />, multiplying in time causes a <strong>shift</strong> in frequency.
                     </p>
                     <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
                       <div className="font-bold text-amber-800 text-xs uppercase mb-1">The Bandwidth Cost</div>
                       <p className="text-xs text-amber-900">
-                        The original spectrum (0 to W) shifts to center around +fc and -fc. 
-                        The new bandwidth spans from fc-W to fc+W.
+                        The original spectrum (0 to W) shifts to center around <InlineMath math="+f_c" /> and <InlineMath math="-f_c" />. 
+                        The new bandwidth spans from <InlineMath math="f_c - W" /> to <InlineMath math="f_c + W" />.
                         <br/><br/>
                         <strong>New Bandwidth = 2W</strong> (Double the original!)
                       </p>

@@ -11,6 +11,7 @@ import {
   Zap,
   X
 } from 'lucide-react';
+import { InlineMath } from 'react-katex';
 
 export function DopplerSimulator() {
   // --- State ---
@@ -370,15 +371,15 @@ export function DopplerSimulator() {
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Wavelength</div>
                 <div className="flex items-center gap-2">
-                  <code className="text-slate-900 font-mono font-bold text-sm">λ = c / f_c</code>
+                  <InlineMath math="\lambda = c / f_c" />
                 </div>
-                <p className="text-[10px] mt-1.5 text-slate-500">c = 3×10⁸ m/s (Speed of Light)</p>
+                <p className="text-[10px] mt-1.5 text-slate-500"><InlineMath math="c = 3 \times 10^8 \text{ m/s}" /> (Speed of Light)</p>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Angle of Arrival</div>
                 <div className="flex items-center gap-2">
-                  <code className="text-slate-900 font-mono font-bold text-sm">cos(θ) = Δx / d</code>
+                  <InlineMath math="\cos(\theta) = \Delta x / d" />
                 </div>
                 <p className="text-[10px] mt-1.5 text-slate-500">Angle between velocity vector and tower direction</p>
               </div>
@@ -386,15 +387,15 @@ export function DopplerSimulator() {
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Doppler Shift</div>
                 <div className="flex items-center gap-2">
-                  <code className="text-slate-900 font-mono font-bold text-sm">Δf = (v / λ) · cos(θ)</code>
+                  <InlineMath math="\Delta f = (v / \lambda) \cdot \cos(\theta)" />
                 </div>
-                <p className="text-[10px] mt-1.5 text-slate-500">v = Velocity (m/s)</p>
+                <p className="text-[10px] mt-1.5 text-slate-500"><InlineMath math="v" /> = Velocity (m/s)</p>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Received Frequency</div>
                 <div className="flex items-center gap-2">
-                  <code className="text-slate-900 font-mono font-bold text-sm">f_rx = f_c + Δf</code>
+                  <InlineMath math="f_{rx} = f_c + \Delta f" />
                 </div>
               </div>
             </div>
