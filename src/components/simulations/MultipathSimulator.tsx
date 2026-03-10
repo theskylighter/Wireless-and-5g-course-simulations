@@ -24,6 +24,7 @@ import {
   X
 } from 'lucide-react';
 import { InlineMath, BlockMath } from 'react-katex';
+import { useHaptics } from '../../contexts/HapticsContext';
 
 interface Point {
   x: number;
@@ -35,6 +36,8 @@ interface Building extends Point {
 }
 
 export function MultipathSimulator() {
+  const { triggerHaptic } = useHaptics();
+
   // Constants
   const CANVAS_WIDTH = 800;
   const CANVAS_HEIGHT = 400;
@@ -192,6 +195,7 @@ export function MultipathSimulator() {
 
     if (clickedBuilding) {
       setDraggedBuildingId(clickedBuilding.id);
+      triggerHaptic('selection');
     }
   };
 
@@ -208,6 +212,9 @@ export function MultipathSimulator() {
   };
 
   const handleMouseUp = () => {
+    if (draggedBuildingId !== null) {
+      triggerHaptic('selection');
+    }
     setDraggedBuildingId(null);
   };
 
@@ -218,14 +225,21 @@ export function MultipathSimulator() {
           <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Multipath & Impulse Response</h2>
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => setIsMoving(!isMoving)}
+              onClick={() => {
+                setIsMoving(!isMoving);
+                triggerHaptic('selection');
+              }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-colors ${isMoving ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}
             >
               {isMoving ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               {isMoving ? 'Pause Car' : 'Resume Car'}
             </button>
             <button 
-              onClick={() => { setRxX(100); setIsMoving(false); }}
+              onClick={() => { 
+                setRxX(100); 
+                setIsMoving(false); 
+                triggerHaptic('selection');
+              }}
               className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors"
             >
               <RotateCcw className="w-4 h-4" />

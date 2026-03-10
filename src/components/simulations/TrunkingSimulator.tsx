@@ -28,9 +28,11 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
-  Calculator
+  Calculator,
+  PhoneCall
 } from 'lucide-react';
 import { calculateErlangB, calculateStateProbabilities } from '../../utils/math';
+import { useHaptics } from '../../contexts/HapticsContext';
 
 interface Event {
   id: number;
@@ -39,6 +41,8 @@ interface Event {
 }
 
 export function TrunkingSimulator() {
+  const { triggerHaptic } = useHaptics();
+
   // Parameters
   const [channels, setChannels] = useState(10);
   const [arrivalRate, setArrivalRate] = useState(5); // lambda
@@ -55,6 +59,21 @@ export function TrunkingSimulator() {
   const blockingProb = useMemo(() => calculateErlangB(channels, trafficLoad), [channels, trafficLoad]);
   const stateProbs = useMemo(() => calculateStateProbabilities(channels, trafficLoad), [channels, trafficLoad]);
 
+  const handleCallAttempt = (isManual = false) => {
+    setStats(s => ({ ...s, totalCalls: s.totalCalls + 1 }));
+    if (currentBusy < channels) {
+      setCurrentBusy(prev => prev + 1);
+      const newEvent: Event = { id: Date.now(), type: 'success', time: new Date().toLocaleTimeString() };
+      setEvents(prev => [newEvent, ...prev].slice(0, 5));
+      triggerHaptic('medium');
+    } else {
+      setStats(s => ({ ...s, droppedCalls: s.droppedCalls + 1 }));
+      const newEvent: Event = { id: Date.now(), type: 'drop', time: new Date().toLocaleTimeString() };
+      setEvents(prev => [newEvent, ...prev].slice(0, 5));
+      triggerHaptic('error');
+    }
+  };
+
   // Simulation Loop
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -67,33 +86,16 @@ export function TrunkingSimulator() {
         const randArrival = Math.random();
         const randDeparture = Math.random();
 
-        let newBusy = currentBusy;
-        let newEvent: Event | null = null;
-
         // Handle Arrival
         if (randArrival < arrivalProb) {
-          setStats(s => ({ ...s, totalCalls: s.totalCalls + 1 }));
-          if (currentBusy < channels) {
-            newBusy++;
-            newEvent = { id: Date.now(), type: 'success', time: new Date().toLocaleTimeString() };
-          } else {
-            setStats(s => ({ ...s, droppedCalls: s.droppedCalls + 1 }));
-            newEvent = { id: Date.now(), type: 'drop', time: new Date().toLocaleTimeString() };
-          }
+          handleCallAttempt();
         }
 
-        // Handle Departure (only if no arrival or independent?)
-        // In a small dt, we assume only one event can happen, but let's allow both for realism
-        if (randDeparture < departureProb && newBusy > 0) {
-          newBusy--;
-          if (!newEvent) {
-            newEvent = { id: Date.now() + 1, type: 'end', time: new Date().toLocaleTimeString() };
-          }
-        }
-
-        if (newBusy !== currentBusy) setCurrentBusy(newBusy);
-        if (newEvent) {
-          setEvents(prev => [newEvent!, ...prev].slice(0, 5));
+        // Handle Departure
+        if (randDeparture < departureProb && currentBusy > 0) {
+          setCurrentBusy(prev => Math.max(0, prev - 1));
+          const newEvent: Event = { id: Date.now() + 1, type: 'end', time: new Date().toLocaleTimeString() };
+          setEvents(prev => [newEvent, ...prev].slice(0, 5));
         }
       }, 200);
     }
@@ -105,6 +107,7 @@ export function TrunkingSimulator() {
     setEvents([]);
     setStats({ totalCalls: 0, droppedCalls: 0 });
     setIsPlaying(false);
+    triggerHaptic('selection');
   };
 
   // Data for the Erlang B curve
@@ -131,7 +134,10 @@ export function TrunkingSimulator() {
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Blocking Probability (GoS)</h2>
           <button 
-            onClick={() => setShowFormulas(true)}
+            onClick={() => {
+              triggerHaptic('selection');
+              setShowFormulas(true);
+            }}
             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
           >
             <Calculator className="w-4 h-4" />
@@ -154,7 +160,10 @@ export function TrunkingSimulator() {
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => setIsPlaying(!isPlaying)}
+                  onClick={() => {
+                    triggerHaptic('selection');
+                    setIsPlaying(!isPlaying);
+                  }}
                   className={`p-2 rounded-lg transition-colors ${isPlaying ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}
                 >
                   {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -178,6 +187,7 @@ export function TrunkingSimulator() {
                   type="range" min="1" max="50" step="1" 
                   value={channels} 
                   onChange={(e) => {
+                    triggerHaptic('selection');
                     setChannels(parseInt(e.target.value));
                     if (currentBusy > parseInt(e.target.value)) setCurrentBusy(parseInt(e.target.value));
                   }}
@@ -193,7 +203,10 @@ export function TrunkingSimulator() {
                 <input 
                   type="range" min="0.1" max="20" step="0.1" 
                   value={arrivalRate} 
-                  onChange={(e) => setArrivalRate(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    triggerHaptic('selection');
+                    setArrivalRate(parseFloat(e.target.value));
+                  }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
               </div>
@@ -206,10 +219,21 @@ export function TrunkingSimulator() {
                 <input 
                   type="range" min="0.1" max="5" step="0.1" 
                   value={serviceRate} 
-                  onChange={(e) => setServiceRate(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    triggerHaptic('selection');
+                    setServiceRate(parseFloat(e.target.value));
+                  }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
               </div>
+              
+              <button
+                onClick={() => handleCallAttempt(true)}
+                className="w-full py-3 bg-indigo-50 text-indigo-600 font-bold rounded-xl hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
+              >
+                <PhoneCall className="w-4 h-4" />
+                Manual Call Attempt
+              </button>
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-100 space-y-4">
@@ -238,7 +262,7 @@ export function TrunkingSimulator() {
             <div className="space-y-3">
               <AnimatePresence initial={false}>
                 {events.length === 0 && (
-                  <p className="text-xs text-slate-400 italic">No events yet. Press Play to start simulation.</p>
+                  <p className="text-xs text-slate-400 italic">No events yet. Press Play or Manual Call to start.</p>
                 )}
                 {events.map((event) => (
                   <motion.div 

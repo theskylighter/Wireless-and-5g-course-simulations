@@ -10,6 +10,7 @@ import { SignalRecoverySimulator } from './components/simulations/SignalRecovery
 import { ModulationSimulator } from './components/simulations/ModulationSimulator';
 import { motion, AnimatePresence } from 'motion/react';
 import { Construction, Menu } from 'lucide-react';
+import { HapticsProvider } from './contexts/HapticsContext';
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -63,42 +64,44 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          setIsSidebarOpen(false);
-        }} 
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
-      
-      <main className="flex-1 overflow-y-auto relative w-full">
-        {/* Mobile Header */}
-        <div className="md:hidden p-4 flex items-center justify-between bg-white border-b border-slate-200 sticky top-0 z-30">
-           <div className="font-bold text-slate-900">Wireless Lab</div>
-           <button 
-             onClick={() => setIsSidebarOpen(true)} 
-             className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-           >
-             <Menu className="w-6 h-6" />
-           </button>
-        </div>
+    <HapticsProvider>
+      <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            setIsSidebarOpen(false);
+          }} 
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+        
+        <main className="flex-1 overflow-y-auto relative w-full">
+          {/* Mobile Header */}
+          <div className="md:hidden p-4 flex items-center justify-between bg-white border-b border-slate-200 sticky top-0 z-30">
+             <div className="font-bold text-slate-900">Wireless Lab</div>
+             <button 
+               onClick={() => setIsSidebarOpen(true)} 
+               className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+             >
+               <Menu className="w-6 h-6" />
+             </button>
+          </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="h-full"
-          >
-            {renderContent()}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-    </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="h-full"
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+    </HapticsProvider>
   );
 }

@@ -31,8 +31,11 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { InlineMath, BlockMath } from 'react-katex';
+import { useHaptics } from '../../contexts/HapticsContext';
 
 export function PropagationSimulator() {
+  const { triggerHaptic } = useHaptics();
+
   // Handoff Parameters
   const [ueSpeed, setUeSpeed] = useState(50); // km/h
   const [handoffMode, setHandoffMode] = useState<'threshold' | 'hysteresis'>('hysteresis');
@@ -110,6 +113,7 @@ export function PropagationSimulator() {
             setIsMoving(false);
             setHandoffEvents(prevEvents => [...prevEvents, { pos: next, type: 'drop' }]);
             setIsPingPonging(false);
+            triggerHaptic('error');
             return prev;
           }
 
@@ -121,12 +125,14 @@ export function PropagationSimulator() {
                 setActiveBS(2);
                 setHandoffEvents(prevEvents => [...prevEvents, { pos: next, type: 'handoff' }]);
                 handoffOccurredThisTick = true;
+                triggerHaptic('medium');
               }
             } else {
               if (s2 < (P_MIN + thresholdMargin)) {
                 setActiveBS(1);
                 setHandoffEvents(prevEvents => [...prevEvents, { pos: next, type: 'handoff' }]);
                 handoffOccurredThisTick = true;
+                triggerHaptic('medium');
               }
             }
           } else {
@@ -135,12 +141,14 @@ export function PropagationSimulator() {
                 setActiveBS(2);
                 setHandoffEvents(prevEvents => [...prevEvents, { pos: next, type: 'handoff' }]);
                 handoffOccurredThisTick = true;
+                triggerHaptic('medium');
               }
             } else {
               if (s1 > (s2 + hysteresisMargin)) {
                 setActiveBS(1);
                 setHandoffEvents(prevEvents => [...prevEvents, { pos: next, type: 'handoff' }]);
                 handoffOccurredThisTick = true;
+                triggerHaptic('medium');
               }
             }
           }
@@ -247,7 +255,10 @@ export function PropagationSimulator() {
                 <input 
                   type="range" min="5" max="150" step="5" 
                   value={ueSpeed} 
-                  onChange={(e) => setUeSpeed(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    setUeSpeed(parseInt(e.target.value));
+                    triggerHaptic('selection');
+                  }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
               </div>
@@ -261,7 +272,10 @@ export function PropagationSimulator() {
                   <input 
                     type="range" min="0" max="20" step="1" 
                     value={thresholdMargin} 
-                    onChange={(e) => setThresholdMargin(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      setThresholdMargin(parseInt(e.target.value));
+                      triggerHaptic('selection');
+                    }}
                     className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                   />
                   <p className="text-[10px] text-slate-400">Triggers HO strictly when RSSI &lt; (Pmin + Δ). (Ping-Pong Mode)</p>
@@ -275,7 +289,10 @@ export function PropagationSimulator() {
                   <input 
                     type="range" min="0" max="20" step="1" 
                     value={hysteresisMargin} 
-                    onChange={(e) => setHysteresisMargin(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      setHysteresisMargin(parseInt(e.target.value));
+                      triggerHaptic('selection');
+                    }}
                     className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                   />
                   <p className="text-[10px] text-slate-400">Triggers HO when RSSI2 &gt; (RSSI1 + H).</p>

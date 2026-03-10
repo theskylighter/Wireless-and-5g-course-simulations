@@ -11,10 +11,13 @@ import {
   ChevronRight,
   X,
   Activity,
-  RotateCcw
+  RotateCcw,
+  Vibrate,
+  VibrateOff
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useHaptics } from '../contexts/HapticsContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -42,6 +45,13 @@ const navItems = [
 ] as const;
 
 export function Sidebar({ activeTab, onTabChange, isOpen, onClose }: SidebarProps) {
+  const { isHapticsEnabled, toggleHaptics, triggerHaptic } = useHaptics();
+
+  const handleTabChange = (id: TabId) => {
+    triggerHaptic('selection');
+    onTabChange(id);
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -77,11 +87,11 @@ export function Sidebar({ activeTab, onTabChange, isOpen, onClose }: SidebarProp
           </button>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => !item.disabled && onTabChange(item.id)}
+              onClick={() => !item.disabled && handleTabChange(item.id)}
               disabled={item.disabled}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
@@ -105,7 +115,20 @@ export function Sidebar({ activeTab, onTabChange, isOpen, onClose }: SidebarProp
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-slate-800 space-y-4">
+          <button
+            onClick={() => {
+              toggleHaptics();
+              triggerHaptic('selection');
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-slate-800 text-slate-300 hover:text-slate-100"
+          >
+            {isHapticsEnabled ? <Vibrate className="w-5 h-5 text-indigo-400" /> : <VibrateOff className="w-5 h-5 text-slate-500" />}
+            <span className="font-medium text-sm flex-1 text-left">
+              Haptics {isHapticsEnabled ? 'Enabled' : 'Disabled'}
+            </span>
+          </button>
+          
           <div className="bg-slate-800/50 rounded-xl p-4 flex items-start gap-3">
             <Info className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
             <p className="text-xs text-slate-400 leading-relaxed">
@@ -127,11 +150,11 @@ export function Sidebar({ activeTab, onTabChange, isOpen, onClose }: SidebarProp
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => !item.disabled && onTabChange(item.id)}
+              onClick={() => !item.disabled && handleTabChange(item.id)}
               disabled={item.disabled}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
@@ -155,7 +178,20 @@ export function Sidebar({ activeTab, onTabChange, isOpen, onClose }: SidebarProp
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-slate-800 space-y-4">
+          <button
+            onClick={() => {
+              toggleHaptics();
+              triggerHaptic('selection');
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-slate-800 text-slate-300 hover:text-slate-100"
+          >
+            {isHapticsEnabled ? <Vibrate className="w-5 h-5 text-indigo-400" /> : <VibrateOff className="w-5 h-5 text-slate-500" />}
+            <span className="font-medium text-sm flex-1 text-left">
+              Haptics {isHapticsEnabled ? 'Enabled' : 'Disabled'}
+            </span>
+          </button>
+          
           <div className="bg-slate-800/50 rounded-xl p-4 flex items-start gap-3">
             <Info className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
             <p className="text-xs text-slate-400 leading-relaxed">

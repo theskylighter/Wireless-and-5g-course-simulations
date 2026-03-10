@@ -20,6 +20,8 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { InlineMath, BlockMath } from 'react-katex';
 import * as math from 'mathjs';
+import { useHaptics } from '../../contexts/HapticsContext';
+
 import { Line, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -50,6 +52,8 @@ ChartJS.register(
 type Complex = math.Complex;
 
 export function SignalRecoverySimulator() {
+  const { triggerHaptic } = useHaptics();
+
   // --- State ---
   const [stage, setStage] = useState(1);
   
@@ -85,6 +89,8 @@ export function SignalRecoverySimulator() {
   const [recoveredSignal, setRecoveredSignal] = useState<number[]>([]);
   const [recoveredBits, setRecoveredBits] = useState("");
 
+  const lastWaveHapticRef = useRef(0);
+
   // --- Helpers ---
 
   // Generate BPSK Signal or Pilot
@@ -112,6 +118,7 @@ export function SignalRecoverySimulator() {
 
     setSignalX(signal);
     setStage(2);
+    triggerHaptic('selection');
   };
 
   const generateRandomCityLayout = () => {
@@ -122,6 +129,7 @@ export function SignalRecoverySimulator() {
     ];
     setTaps(newTaps);
     if (stage > 2) setStage(2);
+    triggerHaptic('selection');
   };
 
   // Generate Impulse Response
@@ -138,6 +146,7 @@ export function SignalRecoverySimulator() {
 
     setSignalH(h);
     setStage(3);
+    triggerHaptic('selection');
   };
 
   // Convolve
@@ -167,6 +176,7 @@ export function SignalRecoverySimulator() {
     setSignalY(y);
     setSignalYNoisy(yNoisy);
     setStage(4);
+    triggerHaptic('selection');
   };
 
   // FFT
@@ -206,6 +216,7 @@ export function SignalRecoverySimulator() {
     setSpectrumE(E_complex.map(c => c.toPolar().r));
 
     setStage(5);
+    triggerHaptic('selection');
   };
 
   // Zero Forcing Equalizer
@@ -244,6 +255,16 @@ export function SignalRecoverySimulator() {
       }
     }
     setRecoveredBits(decoded);
+
+    if (signalType === 'binary') {
+      if (decoded === inputBits) {
+        triggerHaptic('success');
+      } else {
+        triggerHaptic('error');
+      }
+    } else {
+      triggerHaptic('success');
+    }
   };
 
   const reset = () => {
@@ -257,6 +278,7 @@ export function SignalRecoverySimulator() {
     setSpectrumE([]);
     setRecoveredSignal([]);
     setRecoveredBits("");
+    triggerHaptic('selection');
   };
 
   // --- Chart Options ---
@@ -331,6 +353,13 @@ export function SignalRecoverySimulator() {
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.8 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              onUpdate={(latest) => {
+                const now = Date.now();
+                if (latest.pathLength && Number(latest.pathLength) > 0.95 && now - lastWaveHapticRef.current > 800) {
+                  triggerHaptic('light');
+                  lastWaveHapticRef.current = now;
+                }
+              }}
             />
             {/* Echo 1 */}
             {taps[1] && Math.abs(taps[1].amp) > 0.1 && (
@@ -531,6 +560,7 @@ export function SignalRecoverySimulator() {
                                   newTaps[idx].delay = Number(e.target.value);
                                   setTaps(newTaps);
                                   if (stage > 2) setStage(2);
+                                  triggerHaptic('selection');
                                 }}
                                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                               />
@@ -545,6 +575,7 @@ export function SignalRecoverySimulator() {
                                   newTaps[idx].amp = Number(e.target.value);
                                   setTaps(newTaps);
                                   if (stage > 2) setStage(2);
+                                  triggerHaptic('selection');
                                 }}
                                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                               />
@@ -635,6 +666,7 @@ export function SignalRecoverySimulator() {
                     // Actually, the prompt says "If a user changes a parameter... subsequent stages must be hidden/reset".
                     // But this slider is IN stage 3. So we can just let them adjust it before clicking Transmit.
                     if (stage > 3) setStage(3); 
+                    triggerHaptic('selection');
                   }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
                 />

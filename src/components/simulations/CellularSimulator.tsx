@@ -11,12 +11,14 @@ import {
   Maximize2
 } from 'lucide-react';
 import { InlineMath } from 'react-katex';
+import { useHaptics } from '../../contexts/HapticsContext';
 
 export function CellularSimulator() {
   // Simulation Parameters
   const [i, setI] = useState(2);
   const [j, setJ] = useState(1);
   const R = 30; // Hexagon radius
+  const { triggerHaptic } = useHaptics();
 
   // Canvas Ref
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -182,7 +184,10 @@ export function CellularSimulator() {
                 <input 
                   type="range" min="0" max="4" step="1" 
                   value={i} 
-                  onChange={(e) => setI(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    setI(parseInt(e.target.value));
+                    triggerHaptic('selection');
+                  }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>
@@ -195,7 +200,10 @@ export function CellularSimulator() {
                 <input 
                   type="range" min="0" max="4" step="1" 
                   value={j} 
-                  onChange={(e) => setJ(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    setJ(parseInt(e.target.value));
+                    triggerHaptic('selection');
+                  }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>

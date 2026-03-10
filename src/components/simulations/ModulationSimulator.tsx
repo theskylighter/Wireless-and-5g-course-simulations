@@ -15,6 +15,7 @@ import {
   Filler
 } from 'chart.js';
 import { clsx } from 'clsx';
+import { useHaptics } from '../../contexts/HapticsContext';
 
 ChartJS.register(
   CategoryScale,
@@ -31,6 +32,8 @@ ChartJS.register(
 const C = 3e8; // Speed of light m/s
 
 export function ModulationSimulator() {
+  const { triggerHaptic } = useHaptics();
+
   // State
   const [bandwidth, setBandwidth] = useState(5); // kHz (1-10)
   const [carrierFreqLog, setCarrierFreqLog] = useState(5); // Log scale for 30kHz - 3GHz
@@ -416,7 +419,10 @@ export function ModulationSimulator() {
               max="100"
               step="0.1"
               value={carrierFreqLog}
-              onChange={(e) => setCarrierFreqLog(parseFloat(e.target.value))}
+              onChange={(e) => {
+                setCarrierFreqLog(parseFloat(e.target.value));
+                triggerHaptic('selection');
+              }}
               className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
             />
             <div className="flex justify-between text-xs text-slate-400 font-mono">
@@ -442,7 +448,10 @@ export function ModulationSimulator() {
               max="10"
               step="0.5"
               value={bandwidth}
-              onChange={(e) => setBandwidth(parseFloat(e.target.value))}
+              onChange={(e) => {
+                setBandwidth(parseFloat(e.target.value));
+                triggerHaptic('selection');
+              }}
               className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <div className="flex justify-between text-xs text-slate-400 font-mono">
@@ -468,7 +477,10 @@ export function ModulationSimulator() {
               max="1.0"
               step="0.1"
               value={modulationIndex}
-              onChange={(e) => setModulationIndex(parseFloat(e.target.value))}
+              onChange={(e) => {
+                setModulationIndex(parseFloat(e.target.value));
+                triggerHaptic('selection');
+              }}
               className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             />
             <div className="flex justify-between text-xs text-slate-400 font-mono">

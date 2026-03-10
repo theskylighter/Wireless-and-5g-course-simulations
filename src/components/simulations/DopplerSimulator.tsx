@@ -12,8 +12,11 @@ import {
   X
 } from 'lucide-react';
 import { InlineMath } from 'react-katex';
+import { useHaptics } from '../../contexts/HapticsContext';
 
 export function DopplerSimulator() {
+  const { triggerHaptic, startRepeatingHaptic } = useHaptics();
+
   // --- State ---
   const [velocityKmH, setVelocityKmH] = useState(100); // km/h
   const [frequencyGHz, setFrequencyGHz] = useState(2.5); // GHz
@@ -37,6 +40,7 @@ export function DopplerSimulator() {
   const oscRef = useRef<HTMLCanvasElement>(null);
   const wavePhaseRef = useRef(0); // For oscilloscope animation
   const towerWavesRef = useRef<{r: number, opacity: number}[]>([]);
+  const lastHapticTimeRef = useRef(0);
 
   // --- Constants ---
   const C = 3e8; // m/s
@@ -91,7 +95,7 @@ export function DopplerSimulator() {
 
   // --- Animation Loop ---
   useEffect(() => {
-    const animate = () => {
+    const animate = (time: number) => {
       if (isPlaying) {
         // Move Car
         // Scale velocity for visual movement
@@ -114,6 +118,16 @@ export function DopplerSimulator() {
         ...phys,
         dopplerShift: phys.deltaF // Keep track for coloring
       }));
+
+      // Haptic pulse based on Doppler shift
+      if (isPlaying && Math.abs(phys.deltaF) > 5) {
+        // Map deltaF to interval: 500Hz -> 50ms, 5Hz -> 1000ms
+        const intervalMs = Math.max(50, 1000 - Math.abs(phys.deltaF) * 2);
+        if (time - lastHapticTimeRef.current > intervalMs) {
+          triggerHaptic('light');
+          lastHapticTimeRef.current = time;
+        }
+      }
 
       // Draw Main Canvas
       const ctx = canvasRef.current?.getContext('2d');
@@ -153,7 +167,7 @@ export function DopplerSimulator() {
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [isPlaying, velocityKmH, frequencyGHz]);
+  }, [isPlaying, velocityKmH, frequencyGHz, triggerHaptic]);
 
   // --- Drawing Helpers ---
 
@@ -458,7 +472,10 @@ export function DopplerSimulator() {
                 <input 
                   type="range" min="0" max="200" step="1"
                   value={velocityKmH}
-                  onChange={(e) => setVelocityKmH(Number(e.target.value))}
+                  onChange={(e) => {
+                    setVelocityKmH(Number(e.target.value));
+                    triggerHaptic('selection');
+                  }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
               </div>
@@ -471,7 +488,10 @@ export function DopplerSimulator() {
                 <input 
                   type="range" min="1.0" max="5.0" step="0.1"
                   value={frequencyGHz}
-                  onChange={(e) => setFrequencyGHz(Number(e.target.value))}
+                  onChange={(e) => {
+                    setFrequencyGHz(Number(e.target.value));
+                    triggerHaptic('selection');
+                  }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
               </div>
