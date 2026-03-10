@@ -9,8 +9,15 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  X
+  X,
+  ChevronDown,
+  ChevronUp,
+  Building2,
+  RadioTower,
+  Smartphone,
+  RefreshCw
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { InlineMath, BlockMath } from 'react-katex';
 import * as math from 'mathjs';
 import { Line, Bar } from 'react-chartjs-2';
@@ -47,11 +54,13 @@ export function SignalRecoverySimulator() {
   const [stage, setStage] = useState(1);
   
   // Stage 1: Transmitter
+  const [signalType, setSignalType] = useState<'binary' | 'pilot'>('binary');
   const [inputBits, setInputBits] = useState("10110");
   const [samplesPerSymbol, setSamplesPerSymbol] = useState(10);
   const [signalX, setSignalX] = useState<number[]>([]);
   
   // Stage 2: Channel
+  const [showAdvancedChannel, setShowAdvancedChannel] = useState(false);
   const [taps, setTaps] = useState([
     { delay: 0, amp: 1.0 },   // LOS
     { delay: 5, amp: 0.5 },   // Echo 1
@@ -78,23 +87,41 @@ export function SignalRecoverySimulator() {
 
   // --- Helpers ---
 
-  // Generate BPSK Signal
+  // Generate BPSK Signal or Pilot
   const generateSignal = () => {
-    const bits = inputBits.split('').map(b => b === '1' ? 1 : 0);
     const signal: number[] = [];
     
-    bits.forEach(bit => {
-      const val = bit === 1 ? 1 : -1;
-      for (let i = 0; i < samplesPerSymbol; i++) {
-        signal.push(val);
+    if (signalType === 'binary') {
+      const bits = inputBits.split('').map(b => b === '1' ? 1 : 0);
+      bits.forEach(bit => {
+        const val = bit === 1 ? 1 : -1;
+        for (let i = 0; i < samplesPerSymbol; i++) {
+          signal.push(val);
+        }
+      });
+    } else {
+      // Pilot Impulse
+      signal.push(1);
+      for (let i = 1; i < samplesPerSymbol * inputBits.length; i++) {
+        signal.push(0);
       }
-    });
+    }
     
     // Add some silence at the end to see the tail of convolution
     for(let i=0; i<samplesPerSymbol*2; i++) signal.push(0);
 
     setSignalX(signal);
     setStage(2);
+  };
+
+  const generateRandomCityLayout = () => {
+    const newTaps = [
+      { delay: 0, amp: 1.0 }, // LOS is always 1.0 and delay 0
+      { delay: Math.floor(Math.random() * 10) + 2, amp: (Math.random() * 1.6) - 0.8 }, // Echo 1
+      { delay: Math.floor(Math.random() * 10) + 12, amp: (Math.random() * 1.6) - 0.8 } // Echo 2
+    ];
+    setTaps(newTaps);
+    if (stage > 2) setStage(2);
   };
 
   // Generate Impulse Response
@@ -246,24 +273,94 @@ export function SignalRecoverySimulator() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8 pb-20">
-      <header className="flex items-center justify-between">
+      <header className="flex items-start justify-between gap-8">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Activity className="w-6 h-6 text-indigo-600" />
-            Signal Recovery Simulation
+            Channel Estimation & Equalization
           </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Step-by-step visualization of Multipath Channel Propagation and Zero-Forcing Equalization.
+          <p className="text-slate-500 text-sm mt-2 max-w-4xl leading-relaxed">
+            In a modern communication system, the UE (User Equipment/Phone) is the one doing the math to 'find' h(t). The 'Transmitter' (Cell Tower) doesn't know what the environment looks like (buildings, moving cars). It sends a pre-defined, known signal. In 4G/5G, instead of a literal Dirac delta, we send Pilot Signals or Reference Signals—sequences both the tower and phone have memorized. As that signal travels, it hits buildings (echoes) and bounces off the ground. The city itself is the system that 'convolves' the signal with its own h(t).
           </p>
         </div>
         <button
           onClick={reset}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium shrink-0"
         >
           <RotateCcw className="w-4 h-4" />
           Reset Simulation
         </button>
       </header>
+
+      {/* --- NEW: THE CITY CANVAS --- */}
+      <section className="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden relative">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+          <h3 className="font-bold text-white flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-indigo-400" />
+            The City Environment
+          </h3>
+        </div>
+        <div className="h-64 relative overflow-hidden bg-slate-900">
+          {/* Background Grid */}
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#334155 1px, transparent 1px)', backgroundSize: '20px 20px', opacity: 0.2 }} />
+          
+          {/* Transmitter */}
+          <div className="absolute left-8 bottom-8 flex flex-col items-center z-10">
+            <RadioTower className="w-12 h-12 text-indigo-400" />
+            <span className="text-xs font-bold text-indigo-400 mt-2">TX</span>
+          </div>
+
+          {/* Receiver */}
+          <div className="absolute right-8 bottom-8 flex flex-col items-center z-10">
+            <Smartphone className="w-8 h-8 text-emerald-400" />
+            <span className="text-xs font-bold text-emerald-400 mt-2">RX (UE)</span>
+          </div>
+
+          {/* Buildings */}
+          <div className="absolute left-1/3 bottom-0 w-16 h-32 bg-slate-800 border-t border-l border-r border-slate-700 z-10" />
+          <div className="absolute left-2/3 bottom-0 w-20 h-40 bg-slate-800 border-t border-l border-r border-slate-700 z-10" />
+
+          {/* Waves */}
+          {/* LOS Wave */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }} viewBox="0 0 800 256" preserveAspectRatio="none">
+            <motion.path
+              d="M 60 190 L 740 190"
+              stroke="#38bdf8"
+              strokeWidth="3"
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.8 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+            {/* Echo 1 */}
+            {taps[1] && Math.abs(taps[1].amp) > 0.1 && (
+              <motion.path
+                d="M 60 190 L 266 128 L 740 190"
+                stroke="#fb923c"
+                strokeWidth={Math.max(1, Math.abs(taps[1].amp) * 4)}
+                strokeDasharray="8,8"
+                fill="none"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.8 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              />
+            )}
+            {/* Echo 2 */}
+            {taps[2] && Math.abs(taps[2].amp) > 0.1 && (
+              <motion.path
+                d="M 60 190 L 533 96 L 740 190"
+                stroke="#fb923c"
+                strokeWidth={Math.max(1, Math.abs(taps[2].amp) * 4)}
+                strokeDasharray="8,8"
+                fill="none"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.8 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              />
+            )}
+          </svg>
+        </div>
+      </section>
 
       {/* --- STAGE 1: TRANSMITTER --- */}
       <section className={`transition-all duration-500 ${stage >= 1 ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
@@ -273,37 +370,59 @@ export function SignalRecoverySimulator() {
               <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
               The Transmitter (Source Signal)
             </h3>
-            {stage === 1 && (
-              <button 
-                onClick={generateSignal}
-                className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-              >
-                Generate Signal <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-            {stage > 1 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+            <div className="flex items-center gap-4">
+              <div className="group relative">
+                <Info className="w-5 h-5 text-slate-400 cursor-help" />
+                <div className="absolute right-0 top-8 w-64 p-3 bg-slate-800 text-slate-200 text-xs rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                  To map the city's echoes, we send a 'Pilot'—a known 'snap' or impulse. Because the receiver knows exactly what this perfect spike looked like when it left the tower, any distortion it receives reveals the exact shape of the environment.
+                </div>
+              </div>
+              {stage === 1 && (
+                <button 
+                  onClick={generateSignal}
+                  className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                >
+                  Generate Signal <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+              {stage > 1 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+            </div>
           </div>
           
               <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="space-y-4">
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Theory: Inverse Filter</h4>
-                    <div className="text-lg text-indigo-600 mb-2">
-                      <InlineMath math="E(f) = \frac{1}{H(f)}" />
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Signal Type</label>
+                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                      <button
+                        onClick={() => { setSignalType('pilot'); if(stage > 1) setStage(1); }}
+                        className={`flex-1 py-1.5 text-sm font-bold rounded-md transition-colors ${signalType === 'pilot' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Pilot Impulse
+                      </button>
+                      <button
+                        onClick={() => { setSignalType('binary'); if(stage > 1) setStage(1); }}
+                        className={`flex-1 py-1.5 text-sm font-bold rounded-md transition-colors ${signalType === 'binary' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Binary Data
+                      </button>
                     </div>
-                    <p className="text-[10px] text-slate-500 leading-relaxed">
-                      Zero-Forcing (ZF) equalization attempts to "undo" the channel by applying its mathematical inverse in the frequency domain.
-                    </p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">The Recovery Logic</h4>
-                    <div className="text-lg text-emerald-600 mb-2">
-                      <InlineMath math="\hat{X}(f) = Y(f) \cdot E(f)" />
+                  
+                  {signalType === 'binary' && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Input Bits</label>
+                      <input 
+                        type="text" 
+                        value={inputBits}
+                        onChange={(e) => {
+                          setInputBits(e.target.value.replace(/[^01]/g, '').slice(0, 10));
+                          if(stage > 1) setStage(1);
+                        }}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
                     </div>
-                    <p className="text-[10px] text-slate-500 leading-relaxed">
-                      By multiplying the received spectrum <InlineMath math="Y(f)" /> by the equalizer <InlineMath math="E(f)" />, we recover the original signal <InlineMath math="\hat{X}(f)" />.
-                    </p>
-                  </div>
+                  )}
                 </div>
                 
                 <div className="lg:col-span-2 h-48 bg-slate-50 rounded-xl border border-slate-100 p-2 relative">
@@ -349,59 +468,96 @@ export function SignalRecoverySimulator() {
                 <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
                 The Environment (Impulse Response)
               </h3>
-              {stage === 2 && (
-                <button 
-                  onClick={generateChannel}
-                  className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-                >
-                  Set Channel <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-              {stage > 2 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+              <div className="flex items-center gap-4">
+                <div className="group relative">
+                  <Info className="w-5 h-5 text-slate-400 cursor-help" />
+                  <div className="absolute right-0 top-8 w-64 p-3 bg-slate-800 text-slate-200 text-xs rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                    In reality, you don't get to choose the echoes. The environment acts as a random filter. Every building or mountain creates a delayed, attenuated copy of the signal, forming the Impulse Response h[n].
+                  </div>
+                </div>
+                {stage === 2 && (
+                  <button 
+                    onClick={generateChannel}
+                    className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                  >
+                    Set Channel <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+                {stage > 2 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+              </div>
             </div>
 
-            <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="space-y-6">
-                {taps.map((tap, idx) => (
-                  <div key={idx} className="space-y-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <div className="flex justify-between text-xs font-bold uppercase text-slate-500">
-                      <span>{idx === 0 ? 'Line of Sight (LOS)' : `Echo ${idx}`}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs text-slate-600 block mb-1">Delay: {tap.delay}</label>
-                        <input 
-                          type="range" min="0" max="20" step="1"
-                          value={tap.delay}
-                          onChange={(e) => {
-                            const newTaps = [...taps];
-                            newTaps[idx].delay = Number(e.target.value);
-                            setTaps(newTaps);
-                          }}
-                          disabled={stage !== 2}
-                          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-slate-600 block mb-1">Amp: {tap.amp.toFixed(1)}</label>
-                        <input 
-                          type="range" min="-1" max="1" step="0.1"
-                          value={tap.amp}
-                          onChange={(e) => {
-                            const newTaps = [...taps];
-                            newTaps[idx].amp = Number(e.target.value);
-                            setTaps(newTaps);
-                          }}
-                          disabled={stage !== 2}
-                          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={generateRandomCityLayout}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-sm font-bold transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Generate Random City Layout
+                </button>
+                
+                <button
+                  onClick={() => setShowAdvancedChannel(!showAdvancedChannel)}
+                  className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  ⚙️ Advanced: Manually Alter Channel
+                  {showAdvancedChannel ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
               </div>
 
-              <div className="lg:col-span-2 h-64 bg-slate-50 rounded-xl border border-slate-100 p-2 relative">
+              <AnimatePresence>
+                {showAdvancedChannel && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-100 mb-6">
+                      {taps.map((tap, idx) => (
+                        <div key={idx} className="space-y-2">
+                          <div className="flex justify-between text-xs font-bold uppercase text-slate-500">
+                            <span>{idx === 0 ? 'Line of Sight (LOS)' : `Echo ${idx}`}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs text-slate-600 block mb-1">Delay: {tap.delay}</label>
+                              <input 
+                                type="range" min="0" max="20" step="1"
+                                value={tap.delay}
+                                onChange={(e) => {
+                                  const newTaps = [...taps];
+                                  newTaps[idx].delay = Number(e.target.value);
+                                  setTaps(newTaps);
+                                  if (stage > 2) setStage(2);
+                                }}
+                                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-slate-600 block mb-1">Amp: {tap.amp.toFixed(1)}</label>
+                              <input 
+                                type="range" min="-1" max="1" step="0.1"
+                                value={tap.amp}
+                                onChange={(e) => {
+                                  const newTaps = [...taps];
+                                  newTaps[idx].amp = Number(e.target.value);
+                                  setTaps(newTaps);
+                                  if (stage > 2) setStage(2);
+                                }}
+                                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="h-64 bg-slate-50 rounded-xl border border-slate-100 p-2 relative">
                 {signalH.length > 0 ? (
                   <Bar 
                     data={{
@@ -441,15 +597,23 @@ export function SignalRecoverySimulator() {
                 <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
                 The Destruction (Convolution)
               </h3>
-              {stage === 3 && (
-                <button 
-                  onClick={convolveSignals}
-                  className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-                >
-                  Transmit (Convolve) <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-              {stage > 3 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+              <div className="flex items-center gap-4">
+                <div className="group relative">
+                  <Info className="w-5 h-5 text-slate-400 cursor-help" />
+                  <div className="absolute right-0 top-8 w-64 p-3 bg-slate-800 text-slate-200 text-xs rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                    The city mathematically smears the original signal via Convolution: <InlineMath math="y[n]=x[n]*h[n]+\text{noise}" />. The 1s and 0s bleed into each other, causing Inter-Symbol Interference (ISI).
+                  </div>
+                </div>
+                {stage === 3 && (
+                  <button 
+                    onClick={convolveSignals}
+                    className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                  >
+                    Transmit (Convolve) <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+                {stage > 3 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+              </div>
             </div>
 
             <div className="p-6">
@@ -491,6 +655,7 @@ export function SignalRecoverySimulator() {
                         backgroundColor: 'rgba(239, 68, 68, 0.1)',
                         borderWidth: 2,
                         pointRadius: 0,
+                        stepped: true,
                         fill: true
                       }]
                     }}
@@ -516,15 +681,23 @@ export function SignalRecoverySimulator() {
                 <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">4</span>
                 The Math Trick (Frequency Domain)
               </h3>
-              {stage === 4 && (
-                <button 
-                  onClick={performFFT}
-                  className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-                >
-                  Perform FFT <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-              {stage > 4 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+              <div className="flex items-center gap-4">
+                <div className="group relative">
+                  <Info className="w-5 h-5 text-slate-400 cursor-help" />
+                  <div className="absolute right-0 top-8 w-64 p-3 bg-slate-800 text-slate-200 text-xs rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                    Time-domain convolution is hard to untangle. But in the Frequency Domain, convolution is just multiplication: <InlineMath math="Y(f)=X(f)\cdot H(f)+N(f)" />. The deep dips in the H(f) graph show which frequencies the city's echoes destroyed.
+                  </div>
+                </div>
+                {stage === 4 && (
+                  <button 
+                    onClick={performFFT}
+                    className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                  >
+                    Perform FFT <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+                {stage > 4 && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+              </div>
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -608,17 +781,45 @@ export function SignalRecoverySimulator() {
                 <span className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">5</span>
                 The Receiver (Zero-Forcing Equalization)
               </h3>
-              {stage === 5 && (
-                <button 
-                  onClick={performEqualization}
-                  className="px-4 py-1.5 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 flex items-center gap-2"
-                >
-                  Recover Data <CheckCircle2 className="w-4 h-4" />
-                </button>
-              )}
+              <div className="flex items-center gap-4">
+                <div className="group relative">
+                  <Info className="w-5 h-5 text-slate-400 cursor-help" />
+                  <div className="absolute right-0 top-8 w-64 p-3 bg-slate-800 text-slate-200 text-xs rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                    The receiver maps the channel using the Pilot, then applies an 'Inverse Filter' <InlineMath math="E(f)=H(f)^{-1}" /> to the incoming data. This artificially boosts the destroyed frequencies back to normal. However, if there is AWGN noise, boosting a dead frequency also drastically amplifies the noise!
+                  </div>
+                </div>
+                {stage === 5 && (
+                  <button 
+                    onClick={performEqualization}
+                    className="px-4 py-1.5 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+                  >
+                    Recover Data <CheckCircle2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Theory: Inverse Filter</h4>
+                  <div className="text-lg text-indigo-600 mb-2">
+                    <InlineMath math="E(f) = \frac{1}{H(f)}" />
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    Zero-Forcing (ZF) equalization attempts to "undo" the channel by applying its mathematical inverse in the frequency domain.
+                  </p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">The Recovery Logic</h4>
+                  <div className="text-lg text-emerald-600 mb-2">
+                    <InlineMath math="\hat{X}(f) = Y(f) \cdot E(f)" />
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    By multiplying the received spectrum <InlineMath math="Y(f)" /> by the equalizer <InlineMath math="E(f)" />, we recover the original signal <InlineMath math="\hat{X}(f)" />.
+                  </p>
+                </div>
+              </div>
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-amber-800">
@@ -629,24 +830,33 @@ export function SignalRecoverySimulator() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-500 uppercase mb-1">Original Bits</div>
-                  <div className="font-mono text-xl tracking-widest text-slate-800">{inputBits}</div>
-                </div>
-                <ArrowRight className="w-6 h-6 text-slate-300" />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-500 uppercase mb-1">Recovered Bits</div>
-                  <div className={`font-mono text-xl tracking-widest ${recoveredBits === inputBits ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {recoveredBits || "..."}
+              {signalType === 'binary' ? (
+                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="flex-1">
+                    <div className="text-xs font-bold text-slate-500 uppercase mb-1">Original Bits</div>
+                    <div className="font-mono text-xl tracking-widest text-slate-800">{inputBits}</div>
                   </div>
-                </div>
-                {recoveredBits && (
-                  <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${recoveredBits === inputBits ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                    {recoveredBits === inputBits ? 'Success' : 'Error'}
+                  <ArrowRight className="w-6 h-6 text-slate-300" />
+                  <div className="flex-1">
+                    <div className="text-xs font-bold text-slate-500 uppercase mb-1">Recovered Bits</div>
+                    <div className={`font-mono text-xl tracking-widest ${recoveredBits === inputBits ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {recoveredBits || "..."}
+                    </div>
                   </div>
-                )}
-              </div>
+                  {recoveredBits && (
+                    <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${recoveredBits === inputBits ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                      {recoveredBits === inputBits ? 'Success' : 'Error'}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                recoveredSignal.length > 0 && (
+                  <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 font-medium">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    Pilot Impulse Successfully Recovered to map H(f).
+                  </div>
+                )
+              )}
 
               <div className="h-64 bg-slate-50 rounded-xl border border-slate-100 p-2 relative">
                 {recoveredSignal.length > 0 && (
